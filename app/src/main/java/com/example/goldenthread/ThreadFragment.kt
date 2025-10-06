@@ -15,11 +15,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -47,19 +43,20 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize bottom sheet
+        // Bottom sheet setup
         bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         bottomSheetBehavior.isHideable = true
+        bottomSheetBehavior.peekHeight = 200 // you can adjust this height in dp later
 
-        // Setup RecyclerView adapter with empty list initially
+        // RecyclerView setup
         recyclerAdapter = DramaLocationAdapter(emptyList())
         binding.locationRecyclerview.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = recyclerAdapter
         }
 
-        // Setup map fragment
+        // Map setup
         val mapFragment =
             childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -70,9 +67,13 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
 
         iconBitmap = BitmapFactory.decodeResource(resources, R.drawable.goldenthread_icon)
 
+        // Read all CSVs
         val locations = readLocationsFromCSV("GoldenThread Data -  Locations.csv")
+        val dramas = readDramasFromCSV("GoldenThread Data - Dramas.csv")
+        val dramaLocations = readDramaLocationsFromCSV("GoldenThread Data - dl.csv")
+
         if (locations.isEmpty()) {
-            Log.e("Map", "No locations found in CSV")
+            Log.e("Map", "No locations found.")
             return
         }
 
@@ -80,10 +81,9 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
 
         for (loc in locations) {
             val position = LatLng(loc.latitude, loc.longitude)
-            val initialZoom = 10f
-            val scaledIcon = getScaledMarkerIcon(iconBitmap!!, initialZoom)
+            val scaledIcon = getScaledMarkerIcon(iconBitmap!!, 10f)
             val marker = mMap.addMarker(
-                com.google.android.gms.maps.model.MarkerOptions()
+                MarkerOptions()
                     .position(position)
                     .title(loc.nameEn)
                     .snippet(loc.address)
@@ -91,54 +91,55 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
             )
             if (marker != null) {
                 markers.add(marker)
-                marker.tag = loc // store the location object for later
+                marker.tag = loc
             }
             boundsBuilder.include(position)
         }
 
-        // Move camera to fit all markers
         val bounds = boundsBuilder.build()
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
 
-        // Dynamic scaling for markers when zoom changes
+        // Dynamic scaling
         mMap.setOnCameraIdleListener {
             val zoom = mMap.cameraPosition.zoom
-            iconBitmap?.let { bitmap ->
-                val scaled = getScaledMarkerIcon(bitmap, zoom)
-                for (marker in markers) {
-                    marker.setIcon(scaled)
-                }
+            iconBitmap?.let {
+                val scaled = getScaledMarkerIcon(it, zoom)
+                for (marker in markers) marker.setIcon(scaled)
             }
         }
 
         // Marker click listener
         mMap.setOnMarkerClickListener { marker ->
-            val locationData = marker.tag as? LocationData
-            if (locationData != null) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 15f))
+            val loc = marker.tag as? LocationData ?: return@setOnMarkerClickListener true
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 15f))
 
-                // Update RecyclerView with clicked location
-                recyclerAdapter.updateData(
-                    listOf(
-                        LocationItem(
-                            locationData.nameEn,
-                            locationData.nameTh,
-                            locationData.address
-                        )
+            // Find related dramas and scenes
+            val relatedDL = dramaLocations.filter { it.locationId == loc.id }
+            val relatedItems = relatedDL.mapNotNull { dl ->
+                val drama = dramas.find { it.dramaId == dl.dramaId }
+                drama?.let {
+                    LocationDramaItem(
+                        name_en = loc.nameEn,
+                        name_th = loc.nameTh,
+                        address = loc.address,
+                        title_en = it.titleEn,
+                        title_th = it.titleTh,
+                        release_year = it.releaseYear,
+                        scene_notes = dl.sceneNotes,
+                        order_in_trip = dl.orderInTrip,
+                        car_travel_min = dl.carTravelMin
                     )
-                )
-
-                // Show bottom sheet with animation
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                }
             }
+
+            recyclerAdapter.updateData(relatedItems)
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             true
         }
 
-        // Hide bottom sheet when tapping on map
+        // Hide sheet when tapping on map
         mMap.setOnMapClickListener {
-            if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_HIDDEN) {
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-            }
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
     }
 
@@ -157,35 +158,109 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
         val longitude: Double
     )
 
-    data class LocationItem(
-        val nameEn: String,
-        val nameTh: String,
-        val address: String
+    private data class Drama(
+        val dramaId: String,
+        val titleEn: String,
+        val titleTh: String,
+        val releaseYear: String
+    )
+
+    private data class DramaLocation(
+        val dramaId: String,
+        val locationId: String,
+        val sceneNotes: String,
+        val orderInTrip: Int,
+        val carTravelMin: Int
+    )
+
+    data class LocationDramaItem(
+        val name_en: String,
+        val name_th: String,
+        val address: String,
+        val title_en: String,
+        val title_th: String,
+        val release_year: String,
+        val scene_notes: String,
+        val order_in_trip: Int,
+        val car_travel_min: Int
     )
 
     private fun readLocationsFromCSV(fileName: String): List<LocationData> {
-        val locations = mutableListOf<LocationData>()
+        val list = mutableListOf<LocationData>()
         try {
-            val inputStream = requireContext().assets.open(fileName)
-            val reader = BufferedReader(InputStreamReader(inputStream))
+            val reader = BufferedReader(InputStreamReader(requireContext().assets.open(fileName)))
             reader.readLine() // skip header
             reader.forEachLine { line ->
                 val parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())
                 if (parts.size >= 6) {
-                    val id = parts[0].trim()
-                    val nameEn = parts[1].trim()
-                    val nameTh = parts[2].trim()
-                    val address = parts[3].trim().replace("\"", "")
-                    val lat = parts[4].toDoubleOrNull() ?: return@forEachLine
-                    val lng = parts[5].toDoubleOrNull() ?: return@forEachLine
-                    locations.add(LocationData(id, nameEn, nameTh, address, lat, lng))
+                    list.add(
+                        LocationData(
+                            id = parts[0].trim(),
+                            nameEn = parts[1].trim(),
+                            nameTh = parts[2].trim(),
+                            address = parts[3].trim().replace("\"", ""),
+                            latitude = parts[4].toDoubleOrNull() ?: 0.0,
+                            longitude = parts[5].toDoubleOrNull() ?: 0.0
+                        )
+                    )
                 }
             }
             reader.close()
         } catch (e: Exception) {
-            Log.e("CSV", "Error reading CSV: ${e.message}")
+            Log.e("CSV", "Error reading Locations: ${e.message}")
         }
-        return locations
+        return list
+    }
+
+    private fun readDramasFromCSV(fileName: String): List<Drama> {
+        val list = mutableListOf<Drama>()
+        try {
+            val reader = BufferedReader(InputStreamReader(requireContext().assets.open(fileName)))
+            reader.readLine()
+            reader.forEachLine { line ->
+                val parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())
+                if (parts.size >= 4) {
+                    list.add(
+                        Drama(
+                            dramaId = parts[0].trim(),
+                            titleEn = parts[1].trim(),
+                            titleTh = parts[2].trim(),
+                            releaseYear = parts[3].trim()
+                        )
+                    )
+                }
+            }
+            reader.close()
+        } catch (e: Exception) {
+            Log.e("CSV", "Error reading Dramas: ${e.message}")
+        }
+        return list
+    }
+
+    private fun readDramaLocationsFromCSV(fileName: String): List<DramaLocation> {
+        val list = mutableListOf<DramaLocation>()
+        try {
+            val reader = BufferedReader(InputStreamReader(requireContext().assets.open(fileName)))
+            reader.readLine()
+            reader.forEachLine { line ->
+                val parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())
+                if (parts.size >= 5) {
+                    list.add(
+                        DramaLocation(
+                            dramaId = parts[0].trim(),
+                            locationId = parts[1].trim(),
+                            sceneNotes = parts[2].trim().replace("\"", ""),
+                            orderInTrip = parts[3].toIntOrNull() ?: 0,
+                            carTravelMin = parts[4].toIntOrNull() ?: 0
+                        )
+                    )
+                }
+            }
+            reader.close()
+        } catch (e: Exception) {
+            Log.e("CSV", "Error reading DL: ${e.message}")
+        }
+        return list
     }
 
     override fun onDestroyView() {

@@ -1,21 +1,26 @@
 package com.example.goldenthread.adapter
 
-import com.example.goldenthread.ThreadFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.goldenthread.R
+import com.example.goldenthread.ThreadFragment
 
 class DramaLocationAdapter(
-    private var items: List<ThreadFragment.LocationItem>
+    private var items: List<ThreadFragment.LocationDramaItem>
 ) : RecyclerView.Adapter<DramaLocationAdapter.LocationViewHolder>() {
 
     inner class LocationViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val nameTh: TextView = view.findViewById(R.id.nameThText)
         val nameEn: TextView = view.findViewById(R.id.nameEnText)
+        val nameTh: TextView = view.findViewById(R.id.nameThText)
         val address: TextView = view.findViewById(R.id.addressText)
+        val titleEn: TextView = view.findViewById(R.id.titleEnText)
+        val titleTh: TextView = view.findViewById(R.id.titleThText)
+        val releaseYear: TextView = view.findViewById(R.id.releaseYearText)
+        val sceneNotes: TextView = view.findViewById(R.id.sceneNotesText)
+        val travelInfo: TextView = view.findViewById(R.id.travelInfoText)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationViewHolder {
@@ -26,14 +31,19 @@ class DramaLocationAdapter(
 
     override fun onBindViewHolder(holder: LocationViewHolder, position: Int) {
         val item = items[position]
-        holder.nameTh.text = item.nameTh
-        holder.nameEn.text = item.nameEn
+        holder.nameEn.text = item.name_en
+        holder.nameTh.text = item.name_th
         holder.address.text = item.address
+        holder.titleEn.text = item.title_en
+        holder.titleTh.text = item.title_th
+        holder.releaseYear.text = "Year: ${item.release_year}"
+        holder.sceneNotes.text = "Scene Note: ${item.scene_notes}"
+        holder.travelInfo.text = "Order: ${item.order_in_trip} | Travel: ${item.car_travel_min} min"
     }
 
     override fun getItemCount(): Int = items.size
 
-    fun updateData(newItems: List<ThreadFragment.LocationItem>) {
+    fun updateData(newItems: List<ThreadFragment.LocationDramaItem>) {
         items = newItems
         notifyDataSetChanged()
     }
