@@ -1,0 +1,11 @@
+<resources>
+    <color name="yellow">#F2B430</color>
+    <color name="bg">#F7F5F0</color>
+    <color name="dark_gray">#333333</color>
+    <color name="light_gray">#EDECE6</color>
+    <color name="accent">#FFC857</color>
+    <color name="white">#FFFFFF</color>
+
+
+    <color name="black">#000000</color>
+</resources>
