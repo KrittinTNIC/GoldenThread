@@ -1,6 +1,9 @@
 package com.example.goldenthread
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,8 +13,11 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -20,78 +26,115 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentThreadBinding? = null
     private val binding get() = _binding!!
-    private lateinit var map: GoogleMap
+
+    private lateinit var mMap: GoogleMap
+    private val markers = mutableListOf<Marker>()
+    private var iconBitmap: Bitmap? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentThreadBinding.inflate(inflater, container, false)
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
-        mapFragment?.getMapAsync(this)
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        loadLocationsFromCSV()
-    }
+        mMap = googleMap
 
-    private fun loadLocationsFromCSV() {
-        val inputStream = requireContext().assets.open("GoldenThread Data - Location.csv")
-        val reader = BufferedReader(InputStreamReader(inputStream))
+        iconBitmap = BitmapFactory.decodeResource(resources, R.drawable.goldenthread_icon)
+
+        val locations = readLocationsFromCSV("GoldenThread Data -  Locations.csv")
+        if (locations.isEmpty()) {
+            Log.e("Map", "No locations found in CSV")
+            return
+        }
+
         val boundsBuilder = LatLngBounds.Builder()
-        var line: String?
 
-        // Skip header if needed
-        reader.readLine()
+        for (loc in locations) {
+            val position = LatLng(loc.latitude, loc.longitude)
+            val initialZoom = 10f // default zoom before map renders
+            val scaledIcon = getScaledMarkerIcon(iconBitmap!!, initialZoom)
+            val marker = mMap.addMarker(
+                MarkerOptions()
+                    .position(position)
+                    .title(loc.nameEn)
+                    .snippet(loc.address)
+                    .icon(scaledIcon)
+            )
+            if (marker != null) markers.add(marker)
+            boundsBuilder.include(position)
+        }
 
-        while (reader.readLine().also { line = it } != null) {
-            val columns = parseCSVLine(line!!)
-            if (columns.size >= 6) {
-                val nameEn = columns[1]
-                val nameTh = columns[2]
-                val latitude = columns[4].toDoubleOrNull()
-                val longitude = columns[5].toDoubleOrNull()
+        // Move camera to fit all markers
+        val bounds = boundsBuilder.build()
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
 
-                if (latitude != null && longitude != null) {
-                    val position = LatLng(latitude, longitude)
-                    map.addMarker(
-                        MarkerOptions()
-                            .position(position)
-                            .title(nameEn)
-                            .snippet(nameTh)
-                    )
-                    boundsBuilder.include(position)
+        // Handle zoom changes for dynamic resizing
+        mMap.setOnCameraIdleListener {
+            val zoom = mMap.cameraPosition.zoom
+            iconBitmap?.let { bitmap ->
+                val scaled = getScaledMarkerIcon(bitmap, zoom)
+                for (marker in markers) {
+                    marker.setIcon(scaled)
                 }
             }
         }
-
-        reader.close()
-
-        // Move camera to show all markers
-        val bounds = boundsBuilder.build()
-        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
     }
 
-    // Handles CSV lines that may include commas inside quotes
-    private fun parseCSVLine(line: String): List<String> {
-        val result = mutableListOf<String>()
-        var current = StringBuilder()
-        var insideQuote = false
+    private fun getScaledMarkerIcon(original: Bitmap, zoom: Float): BitmapDescriptor {
+        val size = (64 * (zoom / 7f)).toInt().coerceIn(32, 84)
+        val scaled = Bitmap.createScaledBitmap(original, size, size, false)
+        return BitmapDescriptorFactory.fromBitmap(scaled)
+    }
 
-        for (char in line) {
-            when (char) {
-                '"' -> insideQuote = !insideQuote
-                ',' -> if (insideQuote) current.append(char) else {
-                    result.add(current.toString().trim())
-                    current = StringBuilder()
+    private data class LocationData(
+        val id: String,
+        val nameEn: String,
+        val nameTh: String,
+        val address: String,
+        val latitude: Double,
+        val longitude: Double
+    )
+    private data class LocationItem(
+        val nameEn: String,
+        val nameTh: String,
+        val address: String
+    )
+
+
+    private fun readLocationsFromCSV(fileName: String): List<LocationData> {
+        val locations = mutableListOf<LocationData>()
+        try {
+            val inputStream = requireContext().assets.open(fileName)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            reader.readLine() // skip header
+            reader.forEachLine { line ->
+                val parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())
+                if (parts.size >= 6) {
+                    val id = parts[0].trim()
+                    val nameEn = parts[1].trim()
+                    val nameTh = parts[2].trim()
+                    val address = parts[3].trim().replace("\"", "")
+                    val lat = parts[4].toDoubleOrNull() ?: return@forEachLine
+                    val lng = parts[5].toDoubleOrNull() ?: return@forEachLine
+                    locations.add(LocationData(id, nameEn, nameTh, address, lat, lng))
                 }
-                else -> current.append(char)
             }
+            reader.close()
+        } catch (e: Exception) {
+            Log.e("CSV", "Error reading CSV: ${e.message}")
         }
-        result.add(current.toString().trim())
-        return result
+        return locations
     }
 
     override fun onDestroyView() {
