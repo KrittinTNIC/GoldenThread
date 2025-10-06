@@ -8,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.goldenthread.adapter.DramaLocationAdapter
 import com.example.goldenthread.databinding.FragmentThreadBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -18,7 +20,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -31,6 +33,9 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
     private val markers = mutableListOf<Marker>()
     private var iconBitmap: Bitmap? = null
 
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
+    private lateinit var recyclerAdapter: DramaLocationAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -42,8 +47,21 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize bottom sheet
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        bottomSheetBehavior.isHideable = true
+
+        // Setup RecyclerView adapter with empty list initially
+        recyclerAdapter = DramaLocationAdapter(emptyList())
+        binding.locationRecyclerview.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = recyclerAdapter
+        }
+
+        // Setup map fragment
         val mapFragment =
-            childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
+            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
 
@@ -62,16 +80,19 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
 
         for (loc in locations) {
             val position = LatLng(loc.latitude, loc.longitude)
-            val initialZoom = 10f // default zoom before map renders
+            val initialZoom = 10f
             val scaledIcon = getScaledMarkerIcon(iconBitmap!!, initialZoom)
             val marker = mMap.addMarker(
-                MarkerOptions()
+                com.google.android.gms.maps.model.MarkerOptions()
                     .position(position)
                     .title(loc.nameEn)
                     .snippet(loc.address)
                     .icon(scaledIcon)
             )
-            if (marker != null) markers.add(marker)
+            if (marker != null) {
+                markers.add(marker)
+                marker.tag = loc // store the location object for later
+            }
             boundsBuilder.include(position)
         }
 
@@ -79,7 +100,7 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
         val bounds = boundsBuilder.build()
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120))
 
-        // Handle zoom changes for dynamic resizing
+        // Dynamic scaling for markers when zoom changes
         mMap.setOnCameraIdleListener {
             val zoom = mMap.cameraPosition.zoom
             iconBitmap?.let { bitmap ->
@@ -87,6 +108,36 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
                 for (marker in markers) {
                     marker.setIcon(scaled)
                 }
+            }
+        }
+
+        // Marker click listener
+        mMap.setOnMarkerClickListener { marker ->
+            val locationData = marker.tag as? LocationData
+            if (locationData != null) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 15f))
+
+                // Update RecyclerView with clicked location
+                recyclerAdapter.updateData(
+                    listOf(
+                        LocationItem(
+                            locationData.nameEn,
+                            locationData.nameTh,
+                            locationData.address
+                        )
+                    )
+                )
+
+                // Show bottom sheet with animation
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
+            true
+        }
+
+        // Hide bottom sheet when tapping on map
+        mMap.setOnMapClickListener {
+            if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_HIDDEN) {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             }
         }
     }
@@ -105,12 +156,12 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
         val latitude: Double,
         val longitude: Double
     )
-    private data class LocationItem(
+
+    data class LocationItem(
         val nameEn: String,
         val nameTh: String,
         val address: String
     )
-
 
     private fun readLocationsFromCSV(fileName: String): List<LocationData> {
         val locations = mutableListOf<LocationData>()
@@ -142,4 +193,3 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
         _binding = null
     }
 }
-
