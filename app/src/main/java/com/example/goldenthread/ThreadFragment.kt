@@ -1,5 +1,7 @@
 package com.example.goldenthread
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -7,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.goldenthread.adapter.DramaLocationAdapter
@@ -20,7 +23,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-class ThreadFragment : Fragment(), OnMapReadyCallback {
+class ThreadFragment : Fragment(), OnMapReadyCallback,
+    DramaLocationAdapter.OnItemButtonClickListener {
 
     private var _binding: FragmentThreadBinding? = null
     private val binding get() = _binding!!
@@ -38,6 +42,8 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
     private val locations = mutableListOf<LocationData>()
 
     private val TAG = "ThreadFragment"
+
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1001
 
     // ---- Data classes ----
     data class LocationData(
@@ -87,7 +93,7 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
         _binding = FragmentThreadBinding.inflate(inflater, container, false)
 
         // Recycler setup
-        recyclerAdapter = DramaLocationAdapter(emptyList())
+        recyclerAdapter = DramaLocationAdapter(emptyList(), this)
         binding.locationRecyclerview.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = recyclerAdapter
@@ -101,10 +107,10 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
             peekHeight = 0
         }
 
-        // Map fragment initialization (safe)
+        // Map fragment initialization
         try {
             val mapFragment = childFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
-            mapFragment?.getMapAsync(this) ?: Log.e(TAG, "MapFragment is null or not found (id=R.id.map).")
+            mapFragment?.getMapAsync(this) ?: Log.e(TAG, "MapFragment not found")
         } catch (t: Throwable) {
             Log.e(TAG, "Error getting map fragment: ${t.message}", t)
         }
@@ -120,15 +126,10 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
             Log.e(TAG, "Icon decode failed: ${t.message}", t)
         }
 
-        // load CSVs safely (logs any errors)
-        try {
-            loadAllCsvSafely()
-            addMarkersFromLocations()
-        } catch (t: Throwable) {
-            Log.e(TAG, "Fatal error during map setup: ${t.message}", t)
-        }
+        loadAllCsvSafely()
+        addMarkersFromLocations()
 
-        // dynamic scaling on camera idle — use safe map reference
+        // Dynamic scaling
         mMap?.setOnCameraIdleListener {
             val zoom = mMap?.cameraPosition?.zoom ?: return@setOnCameraIdleListener
             iconBitmap?.let { bmp ->
@@ -137,155 +138,93 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-        // marker click handler (safe)
+        // Marker click
         mMap?.setOnMarkerClickListener { marker ->
             val tag = marker.tag
-            if (tag is LocationDramaItem) {
-                try {
-                    // zoom to marker
-                    mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 15f))
-                    // update recycler and show bottom sheet
-                    recyclerAdapter.updateData(listOf(tag))
+            if (tag is List<*>) {
+                val listItem = tag.filterIsInstance<LocationDramaItem>()
+                if (listItem.isNotEmpty()) {
+                    recyclerAdapter.updateData(listItem)
                     bottomSheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
-                } catch (t: Throwable) {
-                    Log.e(TAG, "Error handling marker click: ${t.message}", t)
+                    mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 15f))
                 }
-            } else {
-                Log.w(TAG, "Marker tag is not LocationDramaItem (or is null).")
+            } else if (tag is LocationDramaItem) {
+                recyclerAdapter.updateData(listOf(tag))
+                bottomSheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
+                mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 15f))
             }
             true
         }
 
-        // hide bottom sheet on map click
+        // Hide bottom sheet on map click
         mMap?.setOnMapClickListener {
-            try {
-                bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HIDDEN
-            } catch (t: Throwable) {
-                Log.e(TAG, "Error hiding bottom sheet: ${t.message}", t)
-            }
+            bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HIDDEN
         }
+
+        // Enable user location
+        checkLocationPermission()
     }
 
     private fun loadAllCsvSafely() {
-        try {
-            dramas.clear(); dramas.addAll(readDramasFromCSV("GoldenThread Data - Dramas.csv"))
-        } catch (t: Throwable) {
-            Log.e(TAG, "Error loading dramas CSV: ${t.message}", t)
-        }
-        try {
-            dlList.clear(); dlList.addAll(readDramaLocationsFromCSV("GoldenThread Data - dl.csv"))
-        } catch (t: Throwable) {
-            Log.e(TAG, "Error loading dl CSV: ${t.message}", t)
-        }
-        try {
-            locations.clear(); locations.addAll(readLocationsFromCSV("GoldenThread Data -  Locations.csv"))
-        } catch (t: Throwable) {
-            Log.e(TAG, "Error loading locations CSV: ${t.message}", t)
-        }
+        try { dramas.clear(); dramas.addAll(readDramasFromCSV("GoldenThread Data - Dramas.csv")) } catch (t: Throwable) { Log.e(TAG, "Error loading dramas CSV: ${t.message}", t) }
+        try { dlList.clear(); dlList.addAll(readDramaLocationsFromCSV("GoldenThread Data - dl.csv")) } catch (t: Throwable) { Log.e(TAG, "Error loading dl CSV: ${t.message}", t) }
+        try { locations.clear(); locations.addAll(readLocationsFromCSV("GoldenThread Data -  Locations.csv")) } catch (t: Throwable) { Log.e(TAG, "Error loading locations CSV: ${t.message}", t) }
     }
 
     private fun addMarkersFromLocations() {
-        mMap ?: run {
-            Log.e(TAG, "Map not ready; cannot add markers.")
-            return
-        }
-
-        if (locations.isEmpty()) {
-            Log.w(TAG, "No locations to display (locations list empty).")
-            return
-        }
+        mMap ?: run { Log.e(TAG, "Map not ready"); return }
+        if (locations.isEmpty()) { Log.w(TAG, "No locations"); return }
 
         markers.clear()
         val boundsBuilder = LatLngBounds.Builder()
         for (loc in locations) {
-            try {
-                // If lat/lng are zero, log and skip (avoid placing at 0,0)
-                if (loc.latitude == 0.0 && loc.longitude == 0.0) {
-                    Log.w(TAG, "Skipping location with zero coords: ${loc.id} ${loc.nameEn}")
-                    continue
+            if (loc.latitude == 0.0 && loc.longitude == 0.0) continue
+            val position = LatLng(loc.latitude, loc.longitude)
+            val scaledIcon = iconBitmap?.let { getScaledMarkerIcon(it, 10f) }
+            val markerOptions = MarkerOptions().position(position).title(loc.nameEn).snippet(loc.address)
+            scaledIcon?.let { markerOptions.icon(it) }
+            val marker = mMap!!.addMarker(markerOptions)
+            if (marker != null) {
+                val relatedDL = dlList.filter { it.locationId == loc.id }
+                val items = relatedDL.mapNotNull { dl ->
+                    val drama = dramas.find { it.dramaId == dl.dramaId }
+                    LocationDramaItem(
+                        nameEn = loc.nameEn,
+                        nameTh = loc.nameTh,
+                        address = loc.address,
+                        titleEn = drama?.titleEn ?: "Unknown Drama",
+                        titleTh = drama?.titleTh ?: "",
+                        releaseYear = drama?.releaseYear ?: "",
+                        sceneNotes = dl.sceneNotes,
+                        orderInTrip = dl.orderInTrip,
+                        carTravelMin = dl.carTravelMin,
+                        latitude = loc.latitude,
+                        longitude = loc.longitude
+                    )
                 }
-                val position = LatLng(loc.latitude, loc.longitude)
-                val scaledIcon = iconBitmap?.let { getScaledMarkerIcon(it, 10f) }
-                val markerOptions = MarkerOptions()
-                    .position(position)
-                    .title(loc.nameEn)
-                    .snippet(loc.address)
-                scaledIcon?.let { markerOptions.icon(it) }
-
-                val marker = mMap!!.addMarker(markerOptions)
-                if (marker != null) {
-                    // Build tag: if there are DL entries, create LocationDramaItem(s). If none, fallback.
-                    val relatedDL = dlList.filter { it.locationId == loc.id }
-                    val items = if (relatedDL.isNotEmpty()) {
-                        relatedDL.firstNotNullOfOrNull { dl ->
-                            val drama = dramas.find { it.dramaId == dl.dramaId }
-                            if (drama != null) {
-                                LocationDramaItem(
-                                    nameEn = loc.nameEn,
-                                    nameTh = loc.nameTh,
-                                    address = loc.address,
-                                    titleEn = drama.titleEn,
-                                    titleTh = drama.titleTh,
-                                    releaseYear = drama.releaseYear,
-                                    sceneNotes = dl.sceneNotes,
-                                    orderInTrip = dl.orderInTrip,
-                                    carTravelMin = dl.carTravelMin,
-                                    latitude = loc.latitude,
-                                    longitude = loc.longitude
-                                )
-                            } else {
-                                // DL exists but drama missing: still create fallback item
-                                LocationDramaItem(
-                                    nameEn = loc.nameEn,
-                                    nameTh = loc.nameTh,
-                                    address = loc.address,
-                                    titleEn = "Unknown Drama",
-                                    titleTh = "",
-                                    releaseYear = "",
-                                    sceneNotes = dl.sceneNotes,
-                                    orderInTrip = dl.orderInTrip,
-                                    carTravelMin = dl.carTravelMin,
-                                    latitude = loc.latitude,
-                                    longitude = loc.longitude
-                                )
-                            }
-                        } // choose first for tag (we expand to list in recycler when marker clicked)
-                    } else {
-                        // no dl entries -> fallback item with location info only
-                        LocationDramaItem(
-                            nameEn = loc.nameEn,
-                            nameTh = loc.nameTh,
-                            address = loc.address,
-                            titleEn = "No associated drama",
-                            titleTh = "",
-                            releaseYear = "",
-                            sceneNotes = "",
-                            orderInTrip = 0,
-                            carTravelMin = 0,
-                            latitude = loc.latitude,
-                            longitude = loc.longitude
-                        )
-                    }
-
-                    // store the LocationDramaItem as tag (we show single item; you can change to list)
-                    marker.tag = items
-                    markers.add(marker)
-                    boundsBuilder.include(position)
-                    Log.d(TAG, "Added marker: ${loc.id} ${loc.nameEn} @ ${loc.latitude},${loc.longitude}")
-                }
-            } catch (t: Throwable) {
-                Log.e(TAG, "Error adding marker for ${loc.id}: ${t.message}", t)
+                marker.tag = if (items.isNotEmpty()) items else LocationDramaItem(
+                    nameEn = loc.nameEn,
+                    nameTh = loc.nameTh,
+                    address = loc.address,
+                    titleEn = "No associated drama",
+                    titleTh = "",
+                    releaseYear = "",
+                    sceneNotes = "",
+                    orderInTrip = 0,
+                    carTravelMin = 0,
+                    latitude = loc.latitude,
+                    longitude = loc.longitude
+                )
+                markers.add(marker)
+                boundsBuilder.include(position)
             }
         }
 
-        // move camera to show all markers if any
-        try {
-            if (markers.isNotEmpty()) {
+        if (markers.isNotEmpty()) {
+            try {
                 val bounds = boundsBuilder.build()
                 mMap!!.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
-            }
-        } catch (t: Throwable) {
-            Log.e(TAG, "Error moving camera to bounds: ${t.message}", t)
+            } catch (t: Throwable) { Log.e(TAG, "Error moving camera: ${t.message}", t) }
         }
     }
 
@@ -295,7 +234,34 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
         return BitmapDescriptorFactory.fromBitmap(scaled)
     }
 
-    // ---- CSV readers (robust) ----
+    // --- Location Permission ---
+    private fun checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+        } else {
+            enableMyLocation()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableMyLocation()
+            }
+        }
+    }
+
+    private fun enableMyLocation() {
+        try {
+            mMap?.isMyLocationEnabled = true
+            mMap?.uiSettings?.isMyLocationButtonEnabled = true
+        } catch (e: SecurityException) { e.printStackTrace() }
+    }
+
+    // ---- CSV readers ----
     private fun readLocationsFromCSV(fileName: String): List<LocationData> {
         val list = mutableListOf<LocationData>()
         try {
@@ -305,28 +271,14 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
             reader.forEachLine { line ->
                 if (line.isBlank()) return@forEachLine
                 val parts = parseCsv(line)
-                // Expect at least 6 columns (id,name_en,name_th,address,lat,lng)
                 if (parts.size >= 6) {
                     val lat = parts[4].toDoubleOrNull() ?: 0.0
                     val lng = parts[5].toDoubleOrNull() ?: 0.0
-                    list.add(
-                        LocationData(
-                            id = parts[0].trim(),
-                            nameEn = parts[1].trim(),
-                            nameTh = parts[2].trim(),
-                            address = parts[3].trim().replace("\"", ""),
-                            latitude = lat,
-                            longitude = lng
-                        )
-                    )
-                } else {
-                    Log.w(TAG, "Skipping malformed location line (parts=${parts.size}): $line")
+                    list.add(LocationData(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim().replace("\"",""), lat, lng))
                 }
             }
             reader.close()
-        } catch (t: Throwable) {
-            Log.e(TAG, "readLocationsFromCSV failed: ${t.message}", t)
-        }
+        } catch (t: Throwable) { Log.e(TAG, "readLocationsFromCSV failed: ${t.message}", t) }
         return list
     }
 
@@ -339,16 +291,10 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
             reader.forEachLine { line ->
                 if (line.isBlank()) return@forEachLine
                 val parts = parseCsv(line)
-                if (parts.size >= 4) {
-                    list.add(Drama(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim()))
-                } else {
-                    Log.w(TAG, "Skipping malformed drama line: $line")
-                }
+                if (parts.size >= 4) list.add(Drama(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim()))
             }
             reader.close()
-        } catch (t: Throwable) {
-            Log.e(TAG, "readDramasFromCSV failed: ${t.message}", t)
-        }
+        } catch (t: Throwable) { Log.e(TAG, "readDramasFromCSV failed: ${t.message}", t) }
         return list
     }
 
@@ -362,44 +308,49 @@ class ThreadFragment : Fragment(), OnMapReadyCallback {
                 if (line.isBlank()) return@forEachLine
                 val parts = parseCsv(line)
                 if (parts.size >= 5) {
-                    list.add(
-                        DL(
-                            dramaId = parts[0].trim(),
-                            locationId = parts[1].trim(),
-                            sceneNotes = parts[2].trim().replace("\"", ""),
-                            orderInTrip = parts[3].toIntOrNull() ?: 0,
-                            carTravelMin = parts[4].toIntOrNull() ?: 0
-                        )
-                    )
-                } else {
-                    Log.w(TAG, "Skipping malformed dl line: $line")
+                    list.add(DL(parts[0].trim(), parts[1].trim(), parts[2].trim().replace("\"",""), parts[3].toIntOrNull() ?: 0, parts[4].toIntOrNull() ?: 0))
                 }
             }
             reader.close()
-        } catch (t: Throwable) {
-            Log.e(TAG, "readDramaLocationsFromCSV failed: ${t.message}", t)
-        }
+        } catch (t: Throwable) { Log.e(TAG, "readDramaLocationsFromCSV failed: ${t.message}", t) }
         return list
     }
 
-    // CSV split that respects quoted commas
     private fun parseCsv(line: String): List<String> {
         val regex = Regex(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
         return line.split(regex).map { it.trim() }
     }
 
+    // ---- Recycler button click callbacks ----
+    override fun onGoToDrama(item: LocationDramaItem) {
+        // Implement navigation to drama details
+        Log.d(TAG, "Go to drama clicked: ${item.titleEn}")
+    }
+
+    override fun onGoToNextPoint(item: LocationDramaItem) {
+        // Implement next point navigation (e.g., zoom to next marker)
+        val nextMarker = markers.find { m ->
+            val tag = m.tag
+            if (tag is List<*>) tag.any { it is LocationDramaItem && it.orderInTrip == item.orderInTrip + 1 }
+            else if (tag is LocationDramaItem) tag.orderInTrip == item.orderInTrip + 1
+            else false
+        }
+        nextMarker?.let { mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, 15f)) }
+    }
+
+    override fun onFavorite(item: LocationDramaItem) {
+        // Implement favorite toggle logic here
+        Log.d(TAG, "Favorite clicked: ${item.titleEn}")
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
-        // remove map listeners and clear to avoid DeadObjectException during teardown
         try {
             mMap?.setOnCameraIdleListener(null)
             mMap?.setOnMarkerClickListener(null)
             mMap?.setOnMapClickListener(null)
             mMap?.clear()
-        } catch (t: Throwable) {
-            Log.w(TAG, "Error clearing map listeners: ${t.message}")
-        }
+        } catch (t: Throwable) { Log.w(TAG, "Error clearing map: ${t.message}") }
         _binding = null
     }
 }
-

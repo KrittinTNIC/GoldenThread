@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:orientation="vertical"
-        android:background="@android:color/white"
+        android:background="@drawable/rounded_corners"
         android:elevation="8dp"
         android:padding="8dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
