@@ -327,15 +327,32 @@ class ThreadFragment : Fragment(), OnMapReadyCallback,
         Log.d(TAG, "Go to drama clicked: ${item.titleEn}")
     }
 
-    override fun onGoToNextPoint(item: LocationDramaItem) {
-        // Implement next point navigation (e.g., zoom to next marker)
+    override fun onNextPoint(item: LocationDramaItem) {
+        // Find next point with same drama and orderInTrip + 1
         val nextMarker = markers.find { m ->
             val tag = m.tag
-            if (tag is List<*>) tag.any { it is LocationDramaItem && it.orderInTrip == item.orderInTrip + 1 }
-            else if (tag is LocationDramaItem) tag.orderInTrip == item.orderInTrip + 1
-            else false
+            if (tag is List<*>) {
+                tag.any {
+                    it is LocationDramaItem &&
+                            it.orderInTrip == item.orderInTrip + 1 &&
+                            it.titleEn == item.titleEn // same drama
+                }
+            } else if (tag is LocationDramaItem) {
+                tag.orderInTrip == item.orderInTrip + 1 &&
+                        tag.titleEn == item.titleEn
+            } else false
         }
-        nextMarker?.let { mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, 15f)) }
+
+        nextMarker?.let {
+            mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(it.position, 15f))
+            // Update recycler to show the new point
+            val tag = nextMarker.tag
+            if (tag is List<*>) {
+                recyclerAdapter.updateData(tag.filterIsInstance<LocationDramaItem>().filter { it.titleEn == item.titleEn })
+            } else if (tag is LocationDramaItem) {
+                recyclerAdapter.updateData(listOf(tag))
+            }
+        }
     }
 
     override fun onFavorite(item: LocationDramaItem) {

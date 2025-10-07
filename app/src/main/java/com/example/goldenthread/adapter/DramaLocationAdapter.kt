@@ -17,7 +17,7 @@ class DramaLocationAdapter(
 
     interface OnItemButtonClickListener {
         fun onGoToDrama(item: ThreadFragment.LocationDramaItem)
-        fun onGoToNextPoint(item: ThreadFragment.LocationDramaItem)
+        fun onNextPoint(item: ThreadFragment.LocationDramaItem)
         fun onFavorite(item: ThreadFragment.LocationDramaItem)
     }
 
@@ -44,7 +44,7 @@ class DramaLocationAdapter(
 
     override fun onBindViewHolder(holder: LocationViewHolder, position: Int) {
         val item = items[position]
-        holder.orderText.text = item.orderInTrip.toString()
+        holder.orderText.text = "Scene ${item.orderInTrip.toString()}"
         holder.nameEn.text = item.nameEn
         holder.nameTh.text = item.nameTh
         holder.address.text = item.address
@@ -56,7 +56,7 @@ class DramaLocationAdapter(
 
         // Button click listeners
         holder.btnGoToDrama.setOnClickListener { listener?.onGoToDrama(item) }
-        holder.btnNextPoint.setOnClickListener { listener?.onGoToNextPoint(item) }
+        holder.btnNextPoint.setOnClickListener { listener?.onNextPoint(item) }
         holder.btnFavorite.setOnClickListener { listener?.onFavorite(item) }
     }
 
