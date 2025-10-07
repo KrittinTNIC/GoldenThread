@@ -31,14 +31,14 @@ class DramaLocationAdapter(
 
     override fun onBindViewHolder(holder: LocationViewHolder, position: Int) {
         val item = items[position]
-        holder.nameEn.text = item.name_en
-        holder.nameTh.text = item.name_th
+        holder.nameEn.text = item.nameEn
+        holder.nameTh.text = item.nameTh
         holder.address.text = item.address
-        holder.titleEn.text = item.title_en
-        holder.titleTh.text = item.title_th
-        holder.releaseYear.text = "Year: ${item.release_year}"
-        holder.sceneNotes.text = "Scene Note: ${item.scene_notes}"
-        holder.travelInfo.text = "Order: ${item.order_in_trip} | Travel: ${item.car_travel_min} min"
+        holder.titleEn.text = item.titleEn
+        holder.titleTh.text = item.titleTh
+        holder.releaseYear.text = "Year: ${item.releaseYear}"
+        holder.sceneNotes.text = "Scene Note: ${item.sceneNotes}"
+        holder.travelInfo.text = "Order: ${item.orderInTrip} | Travel: ${item.carTravelMin} min"
     }
 
     override fun getItemCount(): Int = items.size
