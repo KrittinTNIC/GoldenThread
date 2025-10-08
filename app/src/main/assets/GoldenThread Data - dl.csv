@@ -1,0 +1,77 @@
+drama_id,location_id,scene_notes,order_in_trip,car_travel_min
+D001,L001,Step into the museum where Karakade's world was brought to life.,1,0
+D001,L002,"Stand where Karakade gazed upon the Chao Phraya River, caught between two eras",2,15
+D001,L004,Temple grounds that mirror the spiritual world Karakade knew in Ayutthaya,3,5
+D001,L004,Conclude your time-travel journey at this heritage riverside compound where old and new Bangkok embrace.,4,20
+D002,L005,Begin your sequel adventure at Thailand's stunning outdoor museum.,1,0
+D002,L006,"Visit this summer palace where royalty once escaped the heat, echoing the new royal court scenes",2,45
+D002,L007,Stand before this majestic Khmer-style temple ruin that symbolizes Ayutthaya's glory days,3,15
+D002,L008,Explore the UNESCO World Heritage site where the past refuses to die,4,10
+D003,L009,Discover the rushing waterfall that mirrors life's constant motion and change.,1,0
+D003,L010,"Venture into Thailand's first national park, where nature's waves roll green across mountain peaks.",2,40
+D003,L011,Descend into this mystical cave where darkness gives way to breathtaking underground chambers.,3,120
+D003,L012,End at this serene waterfall park where nature offers healing and renewal.,4,30
+D004,L013,Trek to this seven-tiered waterfall where the mythical Nakee legend comes alive.,1,0
+D004,L014,Walk the historic path where prisoners of war carved through mountains.,2,50
+D004,L015,"Stand before this massive dam that tamed wild waters, creating a vast lake of impossible blue.",3,20
+D004,L016,"Cross the famous bridge where history and legend intertwine. The iron spans carry the weight of countless stories, including Nakee's timeless tale.",4,45
+D005,L017,"Begin at the dazzling White Temple, a contemporary masterpiece that bridges traditional faith and modern art.",1,0
+D005,L018,Experience Chiang Rai's vibrant night market where local culture pulses with life.,2,15
+D005,L019,Explore this vast agricultural park with stunning mountain views and flower fields that stretch to the horizon. The peaceful beauty represents the harmony Nakee seeks between her divine nature and earthly desires.,3,25
+D005,L020,Ascend to the former royal residence perched on Doi Tung mountain.,4,35
+D006,L021,"Climb the 300 steps to this golden temple overlooking Chiang Mai, where monks still practice ancient healing arts.",1,0
+D006,L022,Stroll through this trendy neighborhood that shows modern Chiang Mai's creative spirit.,2,10
+D006,L023,Enter the Old City through this iconic red-brick gate that has welcomed travelers for centuries.,3,15
+D006,L024,Wander through narrow lanes where traditional wooden houses still stand.,4,5
+D007,L025,"Start at Southeast Asia's largest weekend market, a sensory explosion of sights, sounds, and smells.",1,0
+D007,L026,Enter Bangkok's bustling heart where youth culture and fashion collide.,2,20
+D007,L027,"Explore this riverside complex housed in a restored dock, blending heritage and modernity.",3,25
+D007,L028,"Experience Bangkok's newest landmark, a massive riverside mall representing ambition and dreams.",4,10
+D008,L029,Dive into Bangkok's historic Chinatown where neon signs illuminate mysteries and secrets.,1,0
+D008,L030,Ascend to one of Bangkok's most famous rooftop bars where the city glitters beneath your feet.,2,20
+D008,L031,Wander through Bangkok's 24-hour flower market where beauty blooms even in darkness.,3,25
+D008,L032,Cross the river to this Temple of Dawn with its towering prang decorated with seashells and porcelain,4,10
+D009,L045,Begin at this working crocodile farm on Bangkok's outskirts that breeds both respect and fear,1,0
+D009,L046,Explore Bangkok's premier contemporary art space showcasing Thai and international artists.,2,15
+D009,L047,Step into the preserved home of the American who revitalized Thai silk industry,3,10
+D009,L048,Experience the infamous backpacker street that never sleeps.,4,15
+D010,L049,Rise to Thailand's highest observation deck for 360-degree views from the glass floor.,1,0
+D010,L050,"Stroll through this modern park built on reclaimed land, symbolizing transformation and renewal.",2,30
+D010,L051,"Relax in Bangkok's first public park, an oasis of calm amid urban chaos.",3,10
+D010,L052,Stand beneath the iconic monument commemorating Thailand's 1932 revolution.,4,20
+D011,L053,Feel the golden sand between your toes at this royal beach resort town.,1,0
+D011,L054,Photograph Thailand's most beautiful railway station with its distinctive red and yellow pavilions.,2,15
+D011,L055,Browse this artistic night market where creativity flourishes after dark.,3,10
+D011,L056,Climb the 400 steps to the monkey temple on this coastal hill.,4,15
+D012,L057,"Embark on the legendary Mae Hong Son Loop, Thailand's most scenic motorcycle route.",1,0
+D012,L058,"Hike to this dramatic canyon carved by erosion, its jagged ridges glowing orange at sunset.",2,5
+D012,L059,Wander through Pai's charming walking street where hippie vibes meet Thai tradition.,3,10
+D012,L060,Explore this massive limestone cave accessible only by bamboo raft.,4,15
+D013,L021,Begin your Ong Bak tour at Chiang Mai's most sacred temple crowning Doi Suthep mountain.,1,0
+D013,L022,"Visit gyms where foreigners and Thais practice together, continuing Ong Bak's mission to share authentic martial arts.",2,45
+D013,L023,Enter through the ancient city gate that has defended Chiang Mai for 700 years.,3,15
+D013,L024,Navigate the Old City's grid of small sois where neighborhood gyms still teach traditional Muay Thai.,4,40
+D014,L041,Start at this famous beach where The Pool's tension between leisure and danger unfolds.,1,0
+D014,L042,Marvel at this massive wooden structure being hand-carved for decades without a single nail.,2,20
+D014,L043,Enter this interactive museum where 3D paintings create impossible illusions.,3,15
+D014,L044,Explore this vast botanical garden showcasing Thai horticulture and culture.,4,30
+D015,L025,"Begin at Chatuchak's overwhelming maze of 15,000 stalls where anything is possible.",1,0
+D015,L026,Hang out where Thai university students actually gather--Siam's shopping centers and street food stalls.,2,20
+D015,L051,Take a rowing boat on Lumpini Park's lake like Tine and Sarawat's memorable date.,3,25
+D015,L026,Return to Siam Square for late-night street food like the characters after band practice.,4,15
+D016,L046,Enter Bangkok's contemporary art center where time feels fluid and reality bends.,1,0
+D016,L047,Walk through Jim Thompson's preserved silk house where every object tells a story.,2,10
+D016,L048,Experience Khao San Road's chaotic nightlife where every night feels like groundhog day for backpackers.,3,20
+D016,L051,Find peace in Lumpini Park where time moves naturally with sunrise and sunset.,4,15
+D017,L007,Visit the haunting ruins of Wat Chaiwatthanaram where Pee Mak's period setting comes alive.,1,0
+D017,L008,"Walk where Mak and Nak might have strolled, before war and tragedy transformed their story into Thailand's most famous ghost tale.",2,15
+D017,L001,Experience Rattanakosin Exhibition Hall's displays of traditional Thai beliefs about spirits and afterlife.,3,45
+D017,L032,"The Temple of Dawn represents new beginnings, yet Nak clings to her past life.",4,20
+D018,L026,Start where Theory of Love's university romance unfolds - the trendy shops and cafes of Siam Square.,1,0
+D018,L046,Visit Bangkok's art and culture center where Third's film student life takes shape.,2,15
+D018,L047,"Tour Jim Thompson's silk house museum, a popular student field trip destination.",3,10
+D018,L051,Share a peaceful moment in Lumpini Park where Third and Khai might escape campus chaos.,4,20
+D019,L025,Begin at Chatuchak's sprawling weekend market where Grandma might shop for bargains.,1,0
+D019,L029,"Experience Yaowarat's bustling Chinatown at night when neon signs blaze and street food sizzles and taste the same dishes Grandma might have made, recipes passed down as precious as money.",2,25
+D019,L031,Wake early for Pak Khlong Talat's flower market operating 24 hours.,3,15
+D019,L051,"Rest in Lumpini Park where free entertainment and exercise equipment serve all Bangkokians equally. Grandma might practice tai chi here with other seniors, finding community in shared space.",4,20

@@ -1,0 +1,61 @@
+location_id,name_en,name_th,address,latitude,longitude
+L001,Rattanakosin Exhibition Hall,หอศิลป์รัตนโกสินทร์,"100 Ratchadamnoen Klang Rd, Phra Nakhon, Bangkok 10200",13.7563,100.5018
+L002,Tha Maharaj Pier,ท่ามหาราช,"Maharaj Rd, Phra Nakhon, Bangkok 10200",13.7469,100.493
+L003,Wat Pho,วัดโพธิ์,"2 Sanam Chai Rd, Phra Nakhon, Bangkok 10200",13.7465,100.4925
+L004,Lhong 1919,โรง 1919,"248 Chiang Mai Rd, Thonburi, Bangkok 10600",13.7289,100.4891
+L005,Ancient City (Muang Boran),เมืองโบราณ,"296/1 Sukhumvit Rd, Samut Prakan 10280",13.5336,100.6197
+L006,Bang Pa-In Palace,พระราชวังบางปะอิน,"Ban Len, Bang Pa-in, Ayutthaya 13160",14.2297,100.5782
+L007,Wat Chaiwatthanaram,ดไชยวัฒนาราม,"Pratuchai, Ayutthaya 13000",14.3427,100.5463
+L008,Ayutthaya Historical Park,อุทยานประวัติศาสตร์พระนครศรีอยุธยา,"Pratu Chai, Ayutthaya 13000",14.3532,100.5677
+L009,Nakhon Nayok Waterfall,น้ำตกนครนายก,"Sarika, Nakhon Nayok 26000",14.3294,101.2133
+L010,Khao Yai National Park,อุทยานแห่งชาติเขาใหญ่,"Pak Chong, Nakhon Ratchasima 30130",14.4343,101.3717
+L011,Wang Badan Cave,ถ้ำวังบาดาล,"Pong Nam Ron, Chanthaburi 22140",12.9431,102.2156
+L012,Namtok Phlio National Park,อุทยานแห่งชาติน้ำตกพลิ้ว,"Laem Sing, Chanthaburi 22120",12.5174,102.1847
+L013,Erawan Waterfall,น้ำตกเอราวัณ,"Si Sawat, Kanchanaburi 71250",14.3686,99.1425
+L014,Hellfire Pass Memorial,อนุสรณ์สถานช่องเขาขาด,"Sai Yok, Kanchanaburi 71150",14.4189,98.9025
+L015,Srinakarin Dam,เขื่อนศรีนครินทร์,"Si Sawat, Kanchanaburi 71250",14.4161,99.0742
+L016,River Kwai Bridge,สะพานข้ามแม่น้ำแคว,"Tha Makham, Kanchanaburi 71000",14.0417,99.5047
+L017,Wat Rong Khun (White Temple),วัดร่องขุ่น,"Pa O Don Chai, Chiang Rai 57000",19.8242,99.7631
+L018,Chiang Rai Night Bazaar,ตลาดกลางคืนเชียงราย,"Rop Wiang, Chiang Rai 57000",19.9067,99.8303
+L019,Singha Park,สิงห์ปาร์ค,"Mae Kon, Chiang Rai 57000",19.8928,99.7619
+L020,Doi Tung Royal Villa,วิลล่าหลวงดอยตุง,"Mae Fa Luang, Chiang Rai 57240",20.3339,99.8478
+L021,Wat Phra That Doi Suthep,วัดพระธาตุดอยสุเทพ,"Su Thep, Chiang Mai 50200",18.8048,98.9217
+L022,Nimman Road,ถนนนิมมานเหมินท์,"Su Thep, Chiang Mai 50200",18.7989,98.9681
+L023,Tha Pae Gate,ประตูท่าแพ,"Phra Sing, Chiang Mai 50200",18.788,98.9944
+L024, Chiang Mai Old City, เมืองเก่าเชียงใหม่," Phra Sing, Chiang Mai 50200",18.7883,98.9853
+L025, Chatuchak Weekend Market, ตลาดนัดจตุจักร,"Chatuchak, Bangkok 10900",13.7997,100.5496
+L026,Siam Square,สยามสแควร์,"Pathum Wan, Bangkok 10330",13.7456,100.5345
+L027,Asiatique The Riverfront,เอเชียทีค,"Charoen Krung Rd, Bangkok 10120",13.7044,100.508
+L028,ICONSIAM,ไอคอนสยาม,"Charoen Nakhon Rd, Bangkok 10600",13.7267,100.5102
+L029,Yaowarat (Chinatown),เยาวราช,"Samphanthawong, Bangkok 10100",13.7397,100.5068
+L030,Lebua Sky Bar,เลอบัว,"1055 Silom Rd, Bangkok 10500",13.7225,100.5147
+L031,Pak Khlong Talat Flower Market,ตลาดดอกไม้ปากคลองตลาด,"Wang Burapha Phirom, Bangkok 10200",13.7428,100.4975
+L032,Wat Arun,วัดอรุณ,"158 Thanon Wang Doem, Bangkok 10600",13.7437,100.4889
+L033,Phuket Old Town,เมืองเก่าภูเก็ต,"Talat Yai, Phuket 83000",7.8804,98.3923
+L034,Patong Beach,หาดป่าตอง,"Pa Tong, Kathu, Phuket 83150",7.8969,98.2966
+L035,Promthep Cape,แหลมพรหมเทพ,"Rawai, Phuket 83130",7.7554,98.305
+L036,Big Buddha Phuket,พระใหญ่ภูเก็ต,"Karon, Phuket 83100",7.8261,98.3081
+L037,Railay Beach,หาดไร่เลย์,"Ao Nang, Krabi 81000",8.0086,98.8394
+L038,Phi Phi Islands,หมู่เกาะพีพี,"Ao Nang, Krabi 81000",7.7407,98.7784
+L039,Emerald Pool (Sa Morakot),สระมรกต,"Khlong Thom, Krabi 81120",7.9264,99.2714
+L040,Tiger Cave Temple,วัดถ้ำเสือ,"Khlong Thom, Krabi 81120",8.1258,98.9219
+L041,Pattaya Beach,หาดพัทยา,"Pattaya City, Chonburi 20150",12.9279,100.8772
+L042,Sanctuary of Truth,ปราสาทสัจธรรม,"Na Kluea, Pattaya 20150",12.9667,100.8931
+L043,Art in Paradise Pattaya,อาร์ตอินพาราไดส์,"Phra Tamnak, Pattaya 20150",12.9125,100.8686
+L044,Nong Nooch Garden,สวนนงนุช,"Na Jomtien, Sattahip 20250",12.7677,100.9144
+L045,Samut Prakan Crocodile Farm,ฟาร์มจระเข้สมุทรปราการ,"Tai Ban, Samut Prakan 10280",13.5542,100.6025
+L046,Bangkok Art and Culture Centre,ศูนย์ศิลปวัฒนธรรมแห่งกรุงเทพมหานคร,"Pathum Wan, Bangkok 10330",13.7468,100.5297
+L047,Jim Thompson House,บ้านจิม ทอมป์สัน,"Wang Mai, Pathum Wan, Bangkok 10330",13.7475,100.5344
+L048,Khao San Road,ถนนข้าวสาร,"Talat Yot, Phra Nakhon, Bangkok 10200",13.7589,100.4977
+L049,Mahanakhon SkyWalk,มหานครสกายวอล์ค,"Silom, Bangkok 10500",13.7241,100.535
+L050,Benjakitti Park,สวนเบญจกิติ,"Khlong Toei, Bangkok 10110",13.7307,100.5606
+L051,Lumpini Park,สวนลุมพินี,"Pathum Wan, Bangkok 10330",13.7307,100.5418
+L052,Victory Monument,อนุสาวรีย์ชัยสมรภูมิ,"Ratchathewi, Bangkok 10400",13.7645,100.5376
+L053,Hua Hin Beach,หาดหัวหิน,"Hua Hin, Prachuap Khiri Khan 77110",12.5657,99.9577
+L054,Hua Hin Railway Station,สถานีรถไฟหัวหิน,"Hua Hin, Prachuap Khiri Khan 77110",12.571,99.9519
+L055,Cicada Market Hua Hin,ซิเคด้า มาร์เก็ต,"Hua Hin, Prachuap Khiri Khan 77110",12.5896,99.9639
+L056,Khao Takiab Beach,หาดเขาตะเกียบ,"Nong Kae, Hua Hin 77110",12.5283,99.9833
+L057,Mae Hong Son Loop,แม่ฮ่องสอนลูป,Mae Hong Son 58000,19.3017,97.9653
+L058,Pai Canyon,ปายแคนยอน,"Pai, Mae Hong Son 58130",19.33,98.4264
+L059,Pai Walking Street,ถนนคนเดินปาย,"Pai, Mae Hong Son 58130",19.3586,98.4403
+L060,Tham Lod Cave,ถ้ำลอด,"Pang Mapha, Mae Hong Son 58150",19.5122,98.2217

@@ -4,6 +4,10 @@
     <!-- Needed for Glide / network images -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Needed for Google Map to access your location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -21,6 +25,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Google map API access -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDLp_0M3_HPd-tKOI-j68xaVBLOfdyYz9A"/>
+
 
     </application>
 </manifest>
